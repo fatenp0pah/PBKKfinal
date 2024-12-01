@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Enrollments</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Enrollment Management</h1>
+    </header>
+    
+    <nav>
+        <a href="/">Home</a>
+        <a href="/students">Manage Students</a>
+        <a href="/courses">Manage Courses</a>
+    </nav>
+
+    <main>
+        <section class="form-section">
+            <h2>Enroll Student in Course</h2>
+            <form action="/enrollments/assign" method="POST">
+                <div class="form-group">
+                    <label for="student_id">Student:</label>
+
+                    <select id="student_id" name="student_id" required>
+                        {{range .students}}
+                        <option value="{{.id}}">{{.name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="course_id">Course:</label>
+                    <select id="course_id" name="course_id" required>
+                        {{range .courses}}
+                        <option value="{{.id}}">{{.name}} ({{.code}})</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">Enroll</button>
+            </form>
+        </section>
+
+        <section class="table-section">
+            <h2>Enrollment History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student Name</th>
+                        <th>Course Name</th>
+                        <th>Enrolled At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .enrollments}}
+                    <tr>
+                        <td>{{.id}}</td>
+                        <td>{{.student_name}}</td>
+                        <td>{{.course_name}}</td>
+                        <td>{{.enrolled_at}}</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Courses</title>
+    <link rel="stylesheet" href="/static/css/styles.css"> 
+</head>
+<body>
+    <header>
+        <h1>Course Management</h1>
+    </header>
+
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/students">Manage Students</a>
+        <a href="/enrollments">Manage Enrollments</a>
+    </nav>
+
+  
+    <h2>Add New Course</h2>
+    <form action="/courses/add" method="POST">
+        <label for="course_name">Course Name:</label>
+        <input type="text" id="course_name" name="course_name" required>
+
+        <label for="course_description">Description:</label>
+        <textarea id="course_description" name="course_description" required></textarea>
+
+        <label for="course_credit">Credits:</label>
+        <input type="number" id="course_credit" name="course_credit" required min="1" max="10">
+
+        <button type="submit">Add Course</button>
+    </form>
+
+  
+    <h2>Available Courses</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Course Name</th>
+                <th>Description</th>
+                <th>Credits</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+         
+            {{range .courses}}
+            <tr>
+                <td>{{.ID}}</td>
+                <td>{{.Name}}</td>
+                <td>{{.Description}}</td>
+                <td>{{.Credits}}</td>
+                <td>
+                  
+                    <form action="/courses/edit/{{.ID}}" method="GET" style="display: inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+               
+                    <form action="/courses/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <button type="submit" onclick="return confirm('Are you sure you want to delete this course?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Course Management System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

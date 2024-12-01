@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Course</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Edit Course</h1>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/students">Manage Students</a>
+        <a href="/enrollments">Manage Enrollments</a>
+    </nav>
+
+    <h2>Edit Course Details</h2>
+    <form method="POST" action="/courses/update">
+        <input type="hidden" name="id" value="{{.course.ID}}">
+    
+        <label for="name">Course Name:</label>
+        <input type="text" name="name" value="{{.course.Name}}" required>
+    
+        <label for="description">Description:</label>
+        <textarea name="description" required>{{.course.Description}}</textarea>
+    
+        <label for="credits">Credits:</label>
+        <input type="number" name="credits" value="{{.course.Credits}}" required>
+    
+        <button type="submit">Update</button>
+    </form>
+    
+    <a href="/courses">Back to Courses List</a>
+</body>
+</html>

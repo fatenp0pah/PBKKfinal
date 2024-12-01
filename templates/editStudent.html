@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #2e2e2e;
+            color: #d9d9d9; 
+            padding: 20px;
+        }
+
+        h2 {
+            color: #ffd700;
+            text-align: center;
+            font-size: 36px;
+            font-family: 'Garamond', serif;
+        }
+
+        form {
+            background-color: #4b4b4b;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        label {
+            font-size: 18px;
+            color: #ffd700; 
+            font-family: 'Georgia', serif;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ffd700; 
+            border-radius: 5px;
+            background-color: #2e2e2e;
+            color: #fff;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #8b0000;
+            outline: none;
+        }
+
+        button {
+            background-color: #8b0000; 
+            color: #fff; 
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #d9d9d9; 
+            color: #2e2e2e;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-container a {
+            color: #ffd700;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .form-container a:hover {
+            color: #8b0000;
+        }
+
+        .header {
+            font-size: 40px;
+            text-align: center;
+            color: #ffd700;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">Edit Student Details</div>
+
+    <div class="form-container">
+        <form action="/students/update" method="POST">
+            <input type="hidden" name="id" value="{{.student.ID}}">
+
+            <label for="name">Name:</label>
+<input type="text" name="name" id="name" value="{{.student.Name}}" required><br><br>
+
+
+            <label for="age">Age:</label>
+            <input type="number" name="age" id="age" value="{{.student.Age}}" required><br><br>
+
+            <label for="phone">Phone:</label>
+            <input type="text" name="phone" id="phone" value="{{.student.Phone}}" required><br><br>
+
+            <label for="image">Image URL:</label>
+            <input type="text" name="image" id="image" value="{{.student.Image}}"><br><br>
+
+            <button type="submit">Update Student</button>
+        </form>
+
+        <a href="/students">Back to Students List</a>
+    </div>
+
+</body>
+</html>
