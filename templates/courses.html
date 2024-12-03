@@ -21,14 +21,14 @@
   
     <h2>Add New Course</h2>
     <form action="/courses/add" method="POST">
-        <label for="course_name">Course Name:</label>
-        <input type="text" id="course_name" name="course_name" required>
+        <label for="name">Course Name:</label>
+        <input type="text" id="name" name="name" required>
 
-        <label for="course_description">Description:</label>
-        <textarea id="course_description" name="course_description" required></textarea>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
 
-        <label for="course_credit">Credits:</label>
-        <input type="number" id="course_credit" name="course_credit" required min="1" max="10">
+        <label for="credit">Credits:</label>
+        <input type="number" id="credit" name="credit" required min="1" max="10">
 
         <button type="submit">Add Course</button>
     </form>

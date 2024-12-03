@@ -5,51 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Enrollments</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Garamond&family=Special+Elite&display=swap" rel="stylesheet">
 </head>
-<body>
-    <header>
-        <h1>Enrollment Management</h1>
+<body class="enrollment-page">
+
+    <header class="header">
+
+        <div class="container">
+            <h1>Enrollment Management</h1>
+            
+        </div>
     </header>
-    
-    <nav>
-        <a href="/">Home</a>
-        <a href="/students">Manage Students</a>
-        <a href="/courses">Manage Courses</a>
+
+    <nav class="navbar">
+        <div class="container">
+            <ul class="navbar-list">
+                <li><a href="/">Home</a></li>
+                <li><a href="/students">Manage Students</a></li>
+                <li><a href="/courses">Manage Courses</a></li>
+                <li><a href="/enrollments" class="active">Manage Enrollments</a></li>
+            </ul>
+        </div>
     </nav>
 
-    <main>
+    <main class="container">
+        <!-- Form Section for Assigning Students -->
         <section class="form-section">
             <h2>Enroll Student in Course</h2>
             <form action="/enrollments/assign" method="POST">
                 <div class="form-group">
-                    <label for="student_id">Student:</label>
-
+                    <label for="student_id">Select Student</label>
                     <select id="student_id" name="student_id" required>
                         {{range .students}}
-                        <option value="{{.id}}">{{.name}}</option>
+                        <option value="{{.ID}}">{{.Name}}</option>
                         {{end}}
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="course_id">Course:</label>
+                    <label for="course_id">Select Course</label>
                     <select id="course_id" name="course_id" required>
                         {{range .courses}}
-                        <option value="{{.id}}">{{.name}} ({{.code}})</option>
+                        <option value="{{.ID}}">{{.Name}}</option>
                         {{end}}
                     </select>
                 </div>
 
-                <button type="submit" class="submit-btn">Enroll</button>
+                <button type="submit" class="btn">Assign Enrollment</button>
             </form>
         </section>
 
+        <!-- Table Section for Showing Enrollment History -->
         <section class="table-section">
             <h2>Enrollment History</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Student Name</th>
                         <th>Course Name</th>
                         <th>Enrolled At</th>
@@ -58,15 +69,20 @@
                 <tbody>
                     {{range .enrollments}}
                     <tr>
-                        <td>{{.id}}</td>
-                        <td>{{.student_name}}</td>
-                        <td>{{.course_name}}</td>
-                        <td>{{.enrolled_at}}</td>
+                        <td>{{.StudentName}}</td>
+                        <td>{{.CourseName}}</td>
+                        <td>{{.EnrolledAt}}</td>
                     </tr>
                     {{end}}
                 </tbody>
             </table>
         </section>
     </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Enrollment Management System</p>
+        </div>
+    </footer>
 </body>
 </html>

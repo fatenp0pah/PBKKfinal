@@ -2,339 +2,286 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
-	"strconv"
-
+	"student-enrollment-system/controllers"
+	"student-enrollment-system/models"
+	"student-enrollment-system/handlers"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 )
 
-var db *sql.DB
-
-type Student struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Age   int    `json:"age"`
-	Phone string `json:"phone"`
-	Image string `json:"image"`
-}
-
-type Course struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Credits     int    `json:"credits"`
-}
-
-
-func initDB() {
-	var err error
-
-	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/student_enrollment_system")
-	if err != nil {
-		panic(err)
-	}
-}
-
 func main() {
-	initDB()
+	// Open database connection
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/student_enrollment_system")
+	if err != nil {
+		log.Fatal("Failed to connect to database: ", err)
+	}
+	defer db.Close()
 
+	// Start Gin web server
 	r := gin.Default()
+
+	// Serve static files for images, CSS, JS, etc.
+	r.Static("/assets", "./assets")
 	r.Static("/static", "./static")
+
+	// Load HTML templates
 	r.LoadHTMLGlob("templates/*")
 
-	// Routes
-	r.GET("/", homePage)
-	r.GET("/students", listStudents)
-	r.POST("/students/add", addStudent)
-	r.GET("/students/edit/:id", getStudentForEdit) 
-	r.POST("/students/update", updateStudent)   
-	r.POST("/students/delete", deleteStudent)
-
-	r.GET("/courses", listCourses)
-	r.GET("/courses/edit/:id", getCourseForEdit)
-	r.POST("/courses/update", updateCourse)     
-	r.POST("/courses/add", addCourse)
-	r.POST("/courses/delete", deleteCourse)
-
-	r.GET("/enrollments", listEnrollments)
-	r.POST("/enrollments/assign", assignEnrollment)
-
-	r.Run(":8080")
-}
-func homePage(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
-}
-
-// Students Handlers
-func listStudents(c *gin.Context) {
-	rows, err := db.Query("SELECT id, name, age, phone, image FROM students")
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	var students []map[string]interface{}
-	for rows.Next() {
-		var id int
-		var name, phone, image string
-		var age int
-		err := rows.Scan(&id, &name, &age, &phone, &image)
-		if err != nil {
-			panic(err)
-		}
-
-		students = append(students, map[string]interface{}{
-			"id":    id,
-			"name":  name,
-			"age":   age,
-			"phone": phone,
-			"image": image,
+	// Serve `index.html` for the root route (`/`)
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Welcome to Student Enrollment System",
 		})
-	}
-
-	if err := rows.Err(); err != nil {
-		c.String(http.StatusInternalServerError, "Error during rows iteration: %v", err)
-		return
-	}
-
-	c.HTML(http.StatusOK, "students.html", gin.H{"students": students})
-}
-
-func addStudent(c *gin.Context) {
-	name := c.PostForm("name")
-	age, _ := strconv.Atoi(c.PostForm("age"))
-	phone := c.PostForm("phone")
-	image := c.PostForm("image") 
-
-	_, _ = db.Exec("INSERT INTO students (name, age, phone, image) VALUES (?, ?, ?, ?)", name, age, phone, image)
-	c.Redirect(http.StatusSeeOther, "/students")
-}
-
-func getStudentForEdit(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Student ID is required"})
-		return
-	}
-
-	var student Student
-	err := db.QueryRow("SELECT id, name, age, phone, image FROM students WHERE id = ?", id).
-		Scan(&student.ID, &student.Name, &student.Age, &student.Phone, &student.Image)
-
-	if err != nil {
-		fmt.Println("Error fetching student: ", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
-		return
-	}
-	fmt.Println(student)
-
-	c.HTML(http.StatusOK, "editStudent.html", gin.H{
-		"student": student,
 	})
-}
 
-func updateStudent(c *gin.Context) {
-	id := c.PostForm("id")
-	name := c.PostForm("name")
-	age, err := strconv.Atoi(c.PostForm("age"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid age format"})
-		return
-	}
-	phone := c.PostForm("phone")
-	image := c.PostForm("image")
-	result, err := db.Exec("UPDATE students SET name = ?, age = ?, phone = ?, image = ? WHERE id = ?", name, age, phone, image, id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update student"})
-		return
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found or not updated"})
-		return
-	}
-	c.Redirect(http.StatusSeeOther, "/students")
-}
+	// ------------------ Student Routes ------------------
 
-func deleteStudent(c *gin.Context) {
-	id := c.PostForm("id")
-	_, _ = db.Exec("DELETE FROM students WHERE id = ?", id)
-	c.Redirect(http.StatusSeeOther, "/students")
-}
-
-// Courses Handlers
-func listCourses(c *gin.Context) {
-
-	rows, err := db.Query("SELECT id, name, description, credits FROM courses")
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Failed to retrieve courses: %v", err)
-		return
-	}
-	defer rows.Close()
-
-	var courses []Course
-	for rows.Next() {
-		var course Course
-		if err := rows.Scan(&course.ID, &course.Name, &course.Description, &course.Credits); err != nil {
-			c.String(http.StatusInternalServerError, "Failed to scan course: %v", err)
+	// Route for displaying students
+	r.GET("/students", func(c *gin.Context) {
+		students, err := controllers.FetchAllStudents(db)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Error fetching students: %v", err)
 			return
 		}
-		courses = append(courses, course)
-	}
-
-	if err := rows.Err(); err != nil {
-		c.String(http.StatusInternalServerError, "Error during rows iteration: %v", err)
-		return
-	}
-
-	c.HTML(http.StatusOK, "courses.html", gin.H{"courses": courses})
-}
-
-func addCourse(c *gin.Context) {
-
-	courseName := c.PostForm("course_name") 
-	courseDescription := c.PostForm("course_description") 
-	courseCredits, err := strconv.Atoi(c.PostForm("course_credit")) 
-	if err != nil {
-		c.String(http.StatusBadRequest, "Invalid course credit value: %v", err)
-		return
-	}
-
-	_, err = db.Exec("INSERT INTO courses (name, description, credits) VALUES (?, ?, ?)",
-		courseName, courseDescription, courseCredits)
-
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Failed to add course: %v", err)
-		return
-	}
-
-	c.Redirect(http.StatusSeeOther, "/courses")
-}
-
-func getCourseForEdit(c *gin.Context) {
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Course ID is required"})
-		return
-	}
-
-	var course Course
-	err := db.QueryRow("SELECT id, name, description, credits FROM courses WHERE id = ?", id).
-		Scan(&course.ID, &course.Name, &course.Description, &course.Credits)
-
-	if err != nil {
-		// Log the error for debugging
-		fmt.Println("Error fetching course: ", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
-		return
-	}
-
-	fmt.Println(course)
-
-	c.HTML(http.StatusOK, "editCourse.html", gin.H{
-		"course": course,
+		c.HTML(http.StatusOK, "students.html", gin.H{"students": students})
 	})
-}
 
-func updateCourse(c *gin.Context) {
-	id := c.PostForm("id")
-	name := c.PostForm("name")
-	description := c.PostForm("description")
-	creditsStr := c.PostForm("credits")
+	// Route for adding a new student
+	r.POST("/students/add", func(c *gin.Context) {
+		// Extract form data
+		name := c.PostForm("name")
+		if name == "" {
+			c.String(http.StatusBadRequest, "Name is required")
+			return
+		}
 
-	if creditsStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Credits cannot be empty"})
-		return
-	}
+		age, err := strconv.Atoi(c.DefaultPostForm("age", "0"))
+		if err != nil || age <= 0 {
+			c.String(http.StatusBadRequest, "Invalid age provided")
+			return
+		}
 
-	credits, err := strconv.Atoi(creditsStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credits format"})
-		return
-	}
+		phone := c.PostForm("phone")
+		if phone == "" {
+			c.String(http.StatusBadRequest, "Phone number is required")
+			return
+		}
 
-	result, err := db.Exec("UPDATE courses SET name = ?, description = ?, credits = ? WHERE id = ?", name, description, credits, id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update course"})
-		return
-	}
+		image := c.PostForm("image")
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found or not updated"})
-		return
-	}
+		student := models.Student{
+			Name:  name,
+			Age:   age,
+			Phone: phone,
+			Image: image,
+		}
 
-	c.Redirect(http.StatusSeeOther, "/courses")
-}
+		if err := controllers.AddStudent(db, student); err != nil {
+			c.String(http.StatusInternalServerError, "Failed to add student: %v", err)
+			return
+		}
 
+		c.Redirect(http.StatusSeeOther, "/students")
+	})
 
-func deleteCourse(c *gin.Context) {
-	id := c.PostForm("id")
-	_, _ = db.Exec("DELETE FROM courses WHERE id = ?", id)
-	c.Redirect(http.StatusSeeOther, "/courses")
-}
+	// Route for deleting a student
+	r.POST("/students/delete", func(c *gin.Context) {
+		studentID := c.PostForm("id")
+		if studentID == "" {
+			c.String(http.StatusBadRequest, "Student ID is required")
+			return
+		}
 
-// Enrollments Handlers
-func listEnrollments(c *gin.Context) {
+		// Convert string ID to integer
+		intID, err := strconv.Atoi(studentID)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid student ID format")
+			return
+		}
 
-    enrollmentsRows, err := db.Query(`
-        SELECT e.id, s.name AS student_name, c.name AS course_name, e.enrolled_at
-        FROM enrollments e
-        JOIN students s ON e.student_id = s.id
-        JOIN courses c ON e.course_id = c.id
-    `)
+		// Convert intID back to string before passing it to the controller
+		if err := controllers.DeleteStudent(db, strconv.Itoa(intID)); err != nil {
+			c.String(http.StatusInternalServerError, "Error deleting student: %v", err)
+			return
+		}
+		c.Redirect(http.StatusSeeOther, "/students")
+	})
+
+	// Route for displaying the edit form for a specific student
+	r.GET("/students/edit/:id", func(c *gin.Context) {
+		studentID := c.Param("id")
+
+		// Convert string ID to integer
+		intID, err := strconv.Atoi(studentID)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid student ID format")
+			return
+		}
+
+		student, err := controllers.FetchStudentByID(db, strconv.Itoa(intID))
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Error fetching student: %v", err)
+			return
+		}
+
+		// Render the edit form with the student's current details
+		c.HTML(http.StatusOK, "editStudent.html", gin.H{"student": student})
+	})
+
+	// Route for updating student details
+	r.POST("/students/update", func(c *gin.Context) {
+		// Get form values
+		id := c.PostForm("id")
+		name := c.PostForm("name")
+		age, err := strconv.Atoi(c.DefaultPostForm("age", "0"))
+		if err != nil || age <= 0 {
+			c.String(http.StatusBadRequest, "Invalid age provided")
+			return
+		}
+		phone := c.PostForm("phone")
+		image := c.PostForm("image")
+
+		// Validate inputs
+		if name == "" || phone == "" {
+			c.String(http.StatusBadRequest, "Name and Phone are required")
+			return
+		}
+
+		// Convert string ID to integer
+		intID, err := strconv.Atoi(id)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid student ID format")
+			return
+		}
+
+		// Create student model
+		student := models.Student{
+			ID:    intID,
+			Name:  name,
+			Age:   age,
+			Phone: phone,
+			Image: image,
+		}
+
+		// Capture both return values (error and result)
+		if _, err := controllers.ModifyStudent(db, student); err != nil {
+			c.String(http.StatusInternalServerError, "Failed to update student: %v", err)
+			return
+		}
+
+		// Redirect back to the student list page
+		c.Redirect(http.StatusSeeOther, "/students")
+	})
+
+	// ------------------ Course Routes ------------------
+
+	// Route for listing all courses
+	r.GET("/courses", func(c *gin.Context) {
+		courses, err := controllers.FetchAllCourses(db) // Correct function for fetching courses
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Error fetching courses: %v", err)
+			return
+		}
+		c.HTML(http.StatusOK, "courses.html", gin.H{"courses": courses})
+	})
+
+	// Route for adding a new course
+	r.POST("/courses/add", func(c *gin.Context) {
+		// Fetching form data
+		name := c.PostForm("name")
+		description := c.PostForm("description")
+		creditsStr := c.DefaultPostForm("credit", "0") // Use 'credit' here to match the input field name in the form
+	
+		// Convert credit to integer
+		credits, err := strconv.Atoi(creditsStr)
+		if err != nil || credits <= 0 {
+			c.String(http.StatusBadRequest, "Invalid credits value")
+			return
+		}
+	
+		// Add course
+		err = controllers.AddCourse(db, name, description, credits)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Failed to add course: %v", err)
+			return
+		}
+	
+		// Redirect to course list page
+		c.Redirect(http.StatusSeeOther, "/courses")
+	})
+	// Route for displaying the edit form for a specific student
+	r.GET("/courses/edit/:id", func(c *gin.Context) {
+		courseID := c.Param("id")
+
+		// Convert string ID to integer
+		intID, err := strconv.Atoi(courseID)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid course ID format")
+			return
+		}
+
+		course, err := controllers.FetchCourseByID(db, strconv.Itoa(intID))
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Error fetching course: %v", err)
+			return
+		}
+
+		// Render the edit form with the student's current details
+		c.HTML(http.StatusOK, "editCourse.html", gin.H{"course": course})
+	})
+
+	// Route to handle updating course details
+r.POST("/courses/update", func(c *gin.Context) {
+    id := c.PostForm("id")
+    name := c.PostForm("name")
+    description := c.PostForm("description")
+    creditsStr := c.PostForm("credit")
+
+    // Convert credits to integer
+    credits, err := strconv.Atoi(creditsStr)
+    if err != nil || credits <= 0 {
+        c.String(http.StatusBadRequest, "Invalid credits value")
+        return
+    }
+
+    // Update course in the database
+    rowsAffected, err := controllers.UpdateCourse(db, id, name, description, credits)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query enrollments"})
-        return
-    }
-    defer enrollmentsRows.Close()
-
-    var enrollments []map[string]interface{}
-    for enrollmentsRows.Next() {
-        var id int
-        var studentName, courseName, enrolledAt string
-
-        err := enrollmentsRows.Scan(&id, &studentName, &courseName, &enrolledAt)
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan enrollments"})
-            return
-        }
-
-        enrollments = append(enrollments, map[string]interface{}{
-            "id":           id,
-            "student_name": studentName,
-            "course_name":  courseName,
-            "enrolled_at":  enrolledAt,
-        })
-    }
-
-    if err := enrollmentsRows.Err(); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error iterating enrollments rows"})
+        c.String(http.StatusInternalServerError, "Failed to update course: %v", err)
         return
     }
 
-    c.HTML(http.StatusOK, "enrollments.html", gin.H{"enrollments": enrollments})
-}
+    if rowsAffected == 0 {
+        c.String(http.StatusNotFound, "Course not found")
+        return
+    }
+
+    // Redirect to course list
+    c.Redirect(http.StatusSeeOther, "/courses")
+})
+
+// Route to handle deleting a course
+r.POST("/courses/delete", func(c *gin.Context) {
+    id := c.PostForm("id")
+
+    // Delete course from the database
+    err := controllers.DeleteCourse(db, id)
+    if err != nil {
+        c.String(http.StatusInternalServerError, "Failed to delete course: %v", err)
+        return
+    }
+
+    // Redirect to course list
+    c.Redirect(http.StatusSeeOther, "/courses")
+})
+// Enrollment routes
+r.GET("/enrollments", func(c *gin.Context) { handlers.ShowEnrollmentsPage(c, db) })
+r.POST("/enrollments/assign", func(c *gin.Context) { handlers.AssignEnrollment(c, db) })
 
 
-// Enrollments Handlers
-func assignEnrollment(c *gin.Context) {
-
-	studentID := c.PostForm("student_id")
-	courseID := c.PostForm("course_id")
-
-	if studentID == "" || courseID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Student ID and Course ID are required"})
-		return
-	}
-	_, err := db.Exec("INSERT INTO enrollments (student_id, course_id, enrolled_at) VALUES (?, ?, NOW())", studentID, courseID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign enrollment"})
-		return
-	}
-
-	c.Redirect(http.StatusSeeOther, "/enrollments")
+	// Start the server on port 8080
+	r.Run(":8080")
 }
