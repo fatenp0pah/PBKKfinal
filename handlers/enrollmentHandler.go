@@ -17,13 +17,13 @@ func ListEnrollments(c *gin.Context, db *sql.DB) {
     }
 
     // Get the list of students and courses
-    students, err := models.GetAllStudents(db) // Assuming GetStudents is implemented in models
+    students, err := models.GetAllStudents(db) 
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch students"})
         return
     }
 
-    courses, err := models.FetchAllCourses(db) // Assuming GetCourses is implemented in models
+    courses, err := models.FetchAllCourses(db)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch courses"})
         return

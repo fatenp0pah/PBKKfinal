@@ -43,7 +43,6 @@ func AddCourse(db *sql.DB, name, description string, credits int) error {
 }
 
 // FetchCourseByID retrieves a course by ID from the database
-// FetchCourseByID retrieves a course by ID from the database
 func FetchCourseByID(db *sql.DB, id string) (*models.Course, error) {
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -51,7 +50,6 @@ func FetchCourseByID(db *sql.DB, id string) (*models.Course, error) {
 		return nil, fmt.Errorf("invalid ID format: %v", err)
 	}
 
-	// Corrected SQL query with proper column names
 	row := db.QueryRow("SELECT id, name, description, credits FROM courses WHERE id = ?", intID)
 
 	var course models.Course
@@ -70,9 +68,8 @@ func FetchCourseByID(db *sql.DB, id string) (*models.Course, error) {
 
 
 // UpdateCourse updates an existing course's details in the database
-// UpdateCourse updates an existing course's details in the database
 func UpdateCourse(db *sql.DB, id, name, description string, credits int) (int64, error) {
-	// Corrected SQL query with proper column names
+	
 	result, err := db.Exec("UPDATE courses SET name = ?, description = ?, credits = ? WHERE id = ?",
 		name, description, credits, id)
 	if err != nil {
@@ -95,8 +92,6 @@ func UpdateCourse(db *sql.DB, id, name, description string, credits int) (int64,
 	return rowsAffected, nil
 }
 
-
-// DeleteCourse deletes a course from the database by ID
 // DeleteCourse deletes a course from the database by ID
 func DeleteCourse(db *sql.DB, id string) error {
 	intID, err := strconv.Atoi(id)
@@ -105,7 +100,6 @@ func DeleteCourse(db *sql.DB, id string) error {
 		return fmt.Errorf("invalid ID format: %v", err)
 	}
 
-	// Corrected SQL query with proper column names
 	_, err = db.Exec("DELETE FROM courses WHERE id = ?", intID)
 	if err != nil {
 		log.Printf("Error deleting course with ID %d: %v", intID, err)

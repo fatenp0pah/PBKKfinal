@@ -43,9 +43,9 @@ func ListCourses(c *gin.Context) {
 }
 
 func AddCourse(c *gin.Context) {
-    courseName := c.PostForm("name") // Update to match 'name' from the form
-    courseDescription := c.PostForm("description") // Update to match 'description' from the form
-    courseCreditsStr := c.PostForm("credit") // Update to match 'credit' from the form
+    courseName := c.PostForm("name") 
+    courseDescription := c.PostForm("description") 
+    courseCreditsStr := c.PostForm("credit") 
 
     if courseCreditsStr == "" {
         c.String(http.StatusBadRequest, "Course credit is required and cannot be empty")

@@ -4,11 +4,11 @@ import "database/sql"
 
 // Enrollment represents an enrollment record.
 type Enrollment struct {
-    StudentID   int    // You can keep student_id and course_id as part of the struct
-    CourseID    int    // Same for course_id
-    StudentName string // Student's name
-    CourseName  string // Course's name
-    EnrolledAt  string // Date of enrollment
+    StudentID   int    
+    CourseID    int    
+    StudentName string 
+    CourseName  string 
+    EnrolledAt  string 
 }
 
 // GetEnrollments retrieves all enrollments from the database.
@@ -41,7 +41,6 @@ func GetEnrollments(db *sql.DB) ([]Enrollment, error) {
     return enrollments, nil
 }
 
-// CreateEnrollment assigns a student to a course.
 // CreateEnrollment assigns a student to a course.
 func CreateEnrollment(db *sql.DB, studentID, courseID int) error {
     _, err := db.Exec("INSERT INTO enrollments (student_id, course_id, enrolled_at) VALUES (?, ?, NOW())", studentID, courseID)
