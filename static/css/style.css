@@ -1,0 +1,196 @@
+body {
+    font-family: 'IM Fell English', serif;
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+    color: white;
+    
+}
+
+nav {
+    font-family: 'IM Fell English', serif;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background-color: rgba(36, 59, 85, 0.9);
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav a {
+    font-family: 'IM Fell English', serif;
+    color: #A67C52;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+nav a:hover {
+    font-family: 'IM Fell English', serif;
+    background-color: #A67C52;
+    color: white;
+}
+
+.activeTab{
+    font-family: 'IM Fell English', serif;
+    color:#243B55;
+    background-color: #A67C52;
+}
+
+.back{
+    font-family: 'IM Fell English', serif;
+    padding: 10px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    background: none;
+    color:green;
+}
+
+h2 {
+    font-family: 'IM Fell English', serif;
+    text-align: center;
+    color: #A67C52;
+    font-size: 36px;
+    margin-top: 20px;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+form {
+    margin: 20px auto;
+    width: 70%;
+    background-color: rgba(20, 30, 48, 0.9);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
+}
+
+form label {
+    color: #A67C52;
+    font-weight: bold;
+    /* padding: 12px; */
+}
+
+form textarea {
+    padding: 12px;
+    margin: 15px 0;
+    border: 2px solid #444;
+    border-radius: 6px;
+    width: 97%;
+    font-size: 16px;
+    background-color: #1E1E2F;
+    color: #E0E0E0;
+
+}
+
+form input[type="text"], form input[type="number"] {
+    padding: 12px;
+    margin: 15px 0;
+    border: 2px solid #444;
+    border-radius: 6px;
+    width: 97%;
+    font-size: 16px;
+    background-color: #1E1E2F;
+    color: #E0E0E0;
+}
+
+form button {
+    padding: 12px 20px;
+    background-color: #A67C52;
+    color: #243B55;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+form button:hover {
+    background-color: #C28E70;
+    transform: translateY(-2px);
+}
+
+table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: rgba(36, 59, 85, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+th, td {
+    font-family: 'IM Fell English', serif;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #3C5068;
+    font-size: 18px;
+}
+
+th {
+    background-color: #1E2F40;
+    color: #A67C52;
+}
+
+tr:nth-child(even) {
+    background-color: #243B55;
+}
+
+tr:nth-child(odd) {
+    background-color: #1E2F40;
+}
+
+img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #A67C52;
+}
+
+.student-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.edit-button, .delete-button {
+    font-family: 'IM Fell English', serif;
+    padding: 10px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    background: none;
+}
+
+.edit-button {
+    font-family: 'IM Fell English', serif;
+    color: #A67C52;
+    /* transition: transform 0.2s; */
+}
+
+.edit-button:hover {
+    font-family: 'IM Fell English', serif;
+    transform: scale(1.2);
+}
+
+.delete-button {
+    font-family: 'IM Fell English', serif;
+    color: #FF6347;
+    transition: transform 0.2s;
+}
+
+
+.delete-button:hover {
+    font-family: 'IM Fell English', serif;
+    transform: scale(1.2);
+}
+

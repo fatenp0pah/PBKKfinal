@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Courses</title>
     <link rel="stylesheet" href="/static/css/styles.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
-    <header>
+    <!-- <header>
         <h1>Course Management</h1>
-    </header>
+    </header> -->
 
 
     <nav>
         <a href="/">Home</a>
         <a href="/students">Manage Students</a>
+        <a class="activeTab" href="/courses">Manage Courses</a>
         <a href="/enrollments">Manage Enrollments</a>
     </nav>
 
@@ -59,9 +63,13 @@
                         <button type="submit">Edit</button>
                     </form>
                
-                    <form action="/courses/delete" method="POST" style="display: inline;">
+                    <!-- <form action="/courses/delete" method="POST" style="display: inline;">
                         <input type="hidden" name="id" value="{{.ID}}">
                         <button type="submit" onclick="return confirm('Are you sure you want to delete this course?');">Delete</button>
+                    </form> -->
+                    <form action="/courses/delete" method="POST" style="display: inline;">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <button type="submit" class="delete-button" onclick="return confirm('Are you sure you want to delete this student?');">🗑️</button>
                     </form>
                 </td>
             </tr>
@@ -70,8 +78,8 @@
     </table>
 
     <!-- Footer -->
-    <footer>
+    <!-- <footer>
         <p>&copy; 2024 Course Management System. All rights reserved.</p>
-    </footer>
+    </footer> -->
 </body>
 </html>
