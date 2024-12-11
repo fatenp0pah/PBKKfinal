@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 	"student-enrollment-system/controllers"
-	"student-enrollment-system/models"
 	"student-enrollment-system/handlers"
+	"student-enrollment-system/models"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"strconv"
 )
 
 func main() {
@@ -194,21 +195,21 @@ func main() {
 		name := c.PostForm("name")
 		description := c.PostForm("description")
 		creditsStr := c.DefaultPostForm("credit", "0") // Use 'credit' here to match the input field name in the form
-	
+
 		// Convert credit to integer
 		credits, err := strconv.Atoi(creditsStr)
 		if err != nil || credits <= 0 {
 			c.String(http.StatusBadRequest, "Invalid credits value")
 			return
 		}
-	
+
 		// Add course
 		err = controllers.AddCourse(db, name, description, credits)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to add course: %v", err)
 			return
 		}
-	
+
 		// Redirect to course list page
 		c.Redirect(http.StatusSeeOther, "/courses")
 	})
@@ -234,54 +235,105 @@ func main() {
 	})
 
 	// Route to handle updating course details
-r.POST("/courses/update", func(c *gin.Context) {
-    id := c.PostForm("id")
-    name := c.PostForm("name")
-    description := c.PostForm("description")
-    creditsStr := c.PostForm("credit")
+	r.POST("/courses/update", func(c *gin.Context) {
+		id := c.PostForm("id")
+		name := c.PostForm("name")
+		description := c.PostForm("description")
+		creditsStr := c.PostForm("credit")
 
-    // Convert credits to integer
-    credits, err := strconv.Atoi(creditsStr)
-    if err != nil || credits <= 0 {
-        c.String(http.StatusBadRequest, "Invalid credits value")
-        return
-    }
+		// Convert credits to integer
+		credits, err := strconv.Atoi(creditsStr)
+		if err != nil || credits <= 0 {
+			c.String(http.StatusBadRequest, "Invalid credits value")
+			return
+		}
 
-    // Update course in the database
-    rowsAffected, err := controllers.UpdateCourse(db, id, name, description, credits)
-    if err != nil {
-        c.String(http.StatusInternalServerError, "Failed to update course: %v", err)
-        return
-    }
+		// Update course in the database
+		rowsAffected, err := controllers.UpdateCourse(db, id, name, description, credits)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Failed to update course: %v", err)
+			return
+		}
 
-    if rowsAffected == 0 {
-        c.String(http.StatusNotFound, "Course not found")
-        return
-    }
+		if rowsAffected == 0 {
+			c.String(http.StatusNotFound, "Course not found")
+			return
+		}
 
-    // Redirect to course list
-    c.Redirect(http.StatusSeeOther, "/courses")
-})
+		// Redirect to course list
+		c.Redirect(http.StatusSeeOther, "/courses")
+	})
 
-// Route to handle deleting a course
-r.POST("/courses/delete", func(c *gin.Context) {
-    id := c.PostForm("id")
+	// Route to handle deleting a course
+	r.POST("/courses/delete", func(c *gin.Context) {
+		id := c.PostForm("id")
 
-    // Delete course from the database
-    err := controllers.DeleteCourse(db, id)
-    if err != nil {
-        c.String(http.StatusInternalServerError, "Failed to delete course: %v", err)
-        return
-    }
+		// Delete course from the database
+		err := controllers.DeleteCourse(db, id)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Failed to delete course: %v", err)
+			return
+		}
 
-    // Redirect to course list
-    c.Redirect(http.StatusSeeOther, "/courses")
-})
-// Enrollment routes
-r.GET("/enrollments", func(c *gin.Context) { handlers.ShowEnrollmentsPage(c, db) })
-r.POST("/enrollments/assign", func(c *gin.Context) { handlers.AssignEnrollment(c, db) })
+		// Redirect to course list
+		c.Redirect(http.StatusSeeOther, "/courses")
+	})
+	// Enrollment routes
+	r.GET("/enrollments", func(c *gin.Context) { handlers.ShowEnrollmentsPage(c, db) })
+	r.POST("/enrollments/assign", func(c *gin.Context) { handlers.AssignEnrollment(c, db) })
 
+	// Route for displaying the login page
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+
+	// Route for handling login form submission
+	r.POST("/login", func(c *gin.Context) {
+		username := c.PostForm("username")
+		password := c.PostForm("password")
+
+		// Check credentials
+		if isValidAdmin(db, username, password) {
+			c.Redirect(http.StatusSeeOther, "/")
+		} else {
+			c.String(http.StatusUnauthorized, "Invalid credentials")
+		}
+	})
+
+	// Route for displaying the register page
+	r.GET("/register", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "register.html", nil)
+	})
+
+	// Route for handling register form submission
+	r.POST("/register", func(c *gin.Context) {
+		username := c.PostForm("username")
+		password := c.PostForm("password")
+
+		// Add new admin
+		if err := addAdmin(db, username, password); err != nil {
+			c.String(http.StatusInternalServerError, "Failed to register: %v", err)
+			return
+		}
+		c.Redirect(http.StatusSeeOther, "/login")
+	})
 
 	// Start the server on port 8080
 	r.Run(":8080")
+}
+
+// Function to validate admin credentials
+func isValidAdmin(db *sql.DB, username, password string) bool {
+	var storedPassword string
+	err := db.QueryRow("SELECT password FROM admins WHERE username = ?", username).Scan(&storedPassword)
+	if err != nil {
+		return false
+	}
+	return storedPassword == password
+}
+
+// Function to add a new admin
+func addAdmin(db *sql.DB, username, password string) error {
+	_, err := db.Exec("INSERT INTO admins (username, password) VALUES (?, ?)", username, password)
+	return err
 }
